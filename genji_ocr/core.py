@@ -53,7 +53,7 @@ class CoreClient:
         paths = {
             'img_dir': f"{item_dir}/img",
             'ocr_dir': f"{item_dir}/ocr",
-            'xml_path': f"{item_dir}/output.xml"
+            'xml_path': f"{item_dir}/{item_dir.split('/')[-1]}.xml"
         }
         
         for dir_path in [paths['img_dir'], paths['ocr_dir']]:
