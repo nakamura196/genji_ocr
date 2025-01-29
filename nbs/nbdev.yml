@@ -2,8 +2,8 @@ project:
   output-dir: _docs
 
 website:
-  title: "genji_ocr"
-  site-url: "https://nakamura196.github.io/genji_ocr"
+  title: "ndlkotensekiocr_tools"
+  site-url: "https://nakamura196.github.io/ndlkotensekiocr_tools"
   description: ""
   repo-branch: main
-  repo-url: "https://github.com/nakamura196/genji_ocr"
+  repo-url: "https://github.com/nakamura196/ndlkotensekiocr_tools"
