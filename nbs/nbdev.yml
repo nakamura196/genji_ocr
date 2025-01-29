@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "genji_ocr"
+  site-url: "https://nakamura196.github.io/genji_ocr"
+  description: ""
+  repo-branch: main
+  repo-url: "https://github.com/nakamura196/genji_ocr"
