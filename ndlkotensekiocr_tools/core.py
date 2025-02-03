@@ -18,14 +18,17 @@ from xml.dom import minidom
 
 # %% ../nbs/00_core.ipynb 4
 class CoreClient:
-    def __init__(self):
+    def __init__(self, end_index=None):
         self.manifest_data = None
         self.canvases = None
+        self.end_index = end_index
 
     @staticmethod
-    def main(manifest_url, output_dir, src_path, verbose=False, resized_width=1200, interval=1):
+    def main(manifest_url, output_dir, src_path, verbose=False, resized_width=1200, interval=1, end_index=None):
         """メイン実行メソッド"""
-        client = CoreClient()
+        client = CoreClient(
+            end_index=end_index
+        )
         paths = client._setup_directories(output_dir)
         
         client.download_images(
@@ -70,6 +73,9 @@ class CoreClient:
     def download_images(self, manifest_url, output_dir, interval=1, verbose=False, resized_width=1200):
         """画像のダウンロード"""
         _, canvases = self._fetch_manifest(manifest_url)
+        
+        if self.end_index:
+            canvases = canvases[:self.end_index]
         
         for i in tqdm(range(len(canvases)), desc="Downloading images"):
             self._download_single_image(
@@ -128,6 +134,11 @@ class CoreClient:
             self._fetch_manifest(manifest_url)
             
         files = sorted(glob(f"{input_dir}/*.xml"))
+
+        files.sort()
+        
+        if self.end_index:
+            files = files[:self.end_index]
         
         # TEI文書の作成
         tei = self._create_tei_base(manifest_url)
@@ -183,11 +194,13 @@ class CoreClient:
         
         return header
     
-    def _create_surface(self, canvas, facsimile):
+    def _create_surface(self, canvas, index, facsimile):
         """surface要素の作成"""
         surface = ET.SubElement(facsimile, "surface")
         
         # 基本属性の設定
+        surface.set("xml:id", f"surface-{index + 1}")
+        surface.set("n", str(index + 1))
         surface.set("sameAs", canvas["@id"])
         surface.set("ulx", "0")
         surface.set("uly", "0")
@@ -214,6 +227,7 @@ class CoreClient:
         """ページのdiv要素作成"""
         div = ET.SubElement(body, "ab")
         div.set("n", str(index + 1))
+        div.set("corresp", "#surface-" + str(index + 1))
         div.set("type", "page")
         div.set("facs", canvas["images"][0]["resource"]["@id"])
         return div
@@ -256,7 +270,9 @@ class CoreClient:
         zone.set("uly", str(y))
         zone.set("lrx", str(x + width))
         zone.set("lry", str(y + height))
-        zone.set("xml:id", f"zone-{line_index}")
+        page_num = surface.get("n", "")
+        zone.set("xml:id", f"zone-p{page_num}-l{line_index}")
+        
         return zone
 
     def _add_text_elements(self, div, line, line_index, zone):
@@ -277,7 +293,7 @@ class CoreClient:
         canvas_width = canvas["images"][0]["resource"]["width"]
         
         # surface要素の作成
-        surface = self._create_surface(canvas, facsimile)
+        surface = self._create_surface(canvas, index, facsimile)
         
         # OCRデータの処理
         with open(file_path, "r", encoding="utf-8") as f:
